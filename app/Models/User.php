@@ -6,6 +6,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 use JWTAuth;
+use App\Models\PasswordReset;
+use Carbon\Carbon;
 
 class User extends Authenticatable
 {
@@ -36,9 +38,18 @@ class User extends Authenticatable
         }
     }
 
-
     public function getToken() {
         $roles = $this->roles()->get()->pluck('name');
         return JWTAuth::fromUser($this, ['exp' => strtotime('+1 year'), 'roles'=>$roles, null, 'user_id'=>$this->id]);
+    }
+
+    public function sendPasswordResetEmail()
+    {
+        $token = str_random(4);
+        $reset = PasswordReset::firstOrNew(['email' => $this->email]);
+        $reset->created_at = Carbon::now();
+        $reset->token = $token;
+        $reset->save();
+        // SEND EMAIL
     }
 }

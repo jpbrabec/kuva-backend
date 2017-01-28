@@ -10,6 +10,7 @@ use App\Models\User;
 use Auth;
 use JWTAuth;
 use Hash;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -64,5 +65,39 @@ class AuthController extends Controller
             return ['message' => 'success', 'token' => $token];
         }
         return response()->json(['message' => 'invalid_credentials'], 401);
+    }
+
+    public function sendPasswordReset(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+        if ($validator->fails()) {
+            return ['message' => 'error', 'errors' => $validator->errors()->all()];
+        }
+        $user = User::where('email', $request->email)->first();
+        $user->sendPasswordResetEmail();
+
+        return ['message' => 'success'];
+    }
+
+    public function performPasswordReset(Request $request)
+    {
+        $token = $request->token;
+        $password = $request->password;
+
+        $reset = PasswordReset::where('token', $token)->first();
+
+        if (Carbon::parse($reset->created_at)->addHour(48)->lte(Carbon::now())) {
+            return ['message' => 'expired'];
+        }
+
+        $user = User::where('email', $reset->email)->first();
+        $user->password = Hash::make($password);
+        $user->save();
+
+        $reset->destroy();
+
+        return ['message' => 'success'];
     }
 }
