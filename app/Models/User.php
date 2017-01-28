@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
+use JWTAuth;
 
 class User extends Authenticatable
 {
@@ -28,4 +29,16 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    public function postSignupActions($roles = ['user']) {
+        foreach ($roles as $role) {
+            $this->attachRole(Role::where('name', $role)->first());
+        }
+    }
+
+
+    public function getToken() {
+        $roles = $this->roles()->get()->pluck('name');
+        return JWTAuth::fromUser($this, ['exp' => strtotime('+1 year'), 'roles'=>$roles, null, 'user_id'=>$this->id]);
+    }
 }
