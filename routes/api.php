@@ -21,6 +21,8 @@ Route::group(['prefix' => 'user'], function() {
 
 Route::group(['prefix' => 'user', 'middleware' => ['jwt.auth']], function() {
 	Route::post('photos/create', 'PhotosController@create');
+	Route::post('photos/{photo}/delete', 'PhotosController@delete');
 	Route::post('photos/comment/{photo}', 'PhotosController@comment');
 	Route::post('photos/like/{photo}', 'PhotosController@like');
+	Route::get('photos/feed', 'PhotosController@feed');
 });

@@ -18,8 +18,8 @@ class CreatePhotosTable extends Migration
             $table->integer('user_id')->unsigned()->nullable();
             $table->foreign('user_id')->references('id')->on('users');
             $table->string('caption');
-            $table->string('lat');
-            $table->string('lng');
+            $table->decimal('lat', 10, 8);
+            $table->decimal('lng', 11, 8);
             $table->timestamps();
             $table->softDeletes();
         });
