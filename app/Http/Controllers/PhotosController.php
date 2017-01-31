@@ -27,7 +27,7 @@ class PhotosController extends Controller
      */
     public function create(Request $request)
     {
-        $validator = \Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'lat' => 'required',
             'lng' => 'required',
             'photo' => 'required|image',
@@ -57,6 +57,12 @@ class PhotosController extends Controller
     }
 
     public function comment(Request $request, Photo $photo) {
+        $validator = Validator::make($request->all(), [
+            'text' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return $validator->errors()->all();
+        }
         $comment = new Comment;
         $comment->text = $request->text;
         $comment->photo_id = $photo->id;
@@ -66,6 +72,13 @@ class PhotosController extends Controller
     }
 
     public function like(Request $request, Photo $photo) {
+      $validator = Validator::make($request->all(), [
+          'liked' => 'required|boolean',
+      ]);
+      if ($validator->fails()) {
+          return $validator->errors()->all();
+      }
+
         $like = Like::firstOrNew(['user_id' => Auth::user()->id, 'photo_id' => $photo->id]);
         $like->liked = $request->liked;
         $like->photo_id = $photo->id;

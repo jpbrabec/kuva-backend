@@ -7,4 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Like extends Model
 {
 	protected $fillable = ['user_id', 'photo_id'];
+
+	public function photo() {
+    return $this->belongsTo('App\Models\Photo');
+  }
+	
 }
