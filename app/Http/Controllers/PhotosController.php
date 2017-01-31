@@ -76,6 +76,11 @@ class PhotosController extends Controller
         var_dump($this->getByDistance(40.423,86.921,50));
     }
 
+    public function userPhotos() {
+        $photos = Photo::where('user_id', Auth::user()->id)->get();
+        return $photos;
+    }
+
     public static function getByDistance($latitude, $longitude, $radius) {
         //http://stackoverflow.com/questions/34010916/how-to-show-stores-with-nearest-long-lat-values-using-search-function-laravel
         // $photos = Photo::selectRaw('( 6371 * acos( cos( radians(?) ) *
