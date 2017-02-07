@@ -30,14 +30,17 @@ class PhotosController extends Controller
         $validator = Validator::make($request->all(), [
             'lat' => 'required',
             'lng' => 'required',
+            'caption' => 'string|max:255',
             'photo' => 'required|image',
         ]);
+
         if ($validator->fails()) {
             return $validator->errors()->all();
         }
+
         $photo = new Photo;
         $photo->user_id = Auth::user()->id;
-        $photo->caption = str_random(40); // replace later
+        $photo->caption = $request->caption;
         $photo->lat = $request->lat;
         $photo->lng = $request->lng;
         $photo->save();
@@ -46,12 +49,15 @@ class PhotosController extends Controller
         $destinationPath = storage_path('app/public') . '/uploads';
         $name =  $photo->id . '.' . $image->getClientOriginalExtension();
         if(!$image->move($destinationPath, $name)) {
-            return $this->errors(['message' => 'Error saving the file.', 'code' => 400]);
+            return ['message' => 'Error saving the file.', 'code' => 400];
         }
         return ['message' => 'success'];
     }
 
     public function delete(Request $request, Photo $photo) {
+        if($photo->user_id != Auth::user()->id) {
+            return ['message' => 'authentication'];
+        }
         $photo->delete();
         return ['message' => 'success'];
     }
@@ -60,9 +66,11 @@ class PhotosController extends Controller
         $validator = Validator::make($request->all(), [
             'text' => 'required',
         ]);
+
         if ($validator->fails()) {
             return $validator->errors()->all();
         }
+
         $comment = new Comment;
         $comment->text = $request->text;
         $comment->photo_id = $photo->id;
@@ -72,12 +80,13 @@ class PhotosController extends Controller
     }
 
     public function like(Request $request, Photo $photo) {
-      $validator = Validator::make($request->all(), [
-          'liked' => 'required|boolean',
-      ]);
-      if ($validator->fails()) {
-          return $validator->errors()->all();
-      }
+        $validator = Validator::make($request->all(), [
+            'liked' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return $validator->errors()->all();
+        }
 
         $like = Like::firstOrNew(['user_id' => Auth::user()->id, 'photo_id' => $photo->id]);
         $like->liked = $request->liked;
@@ -92,6 +101,7 @@ class PhotosController extends Controller
           'lat' => 'required|numeric',
           'lng' => 'required|numeric',
       ]);
+
       if ($validator->fails()) {
           return $validator->errors()->all();
       }
@@ -107,5 +117,4 @@ class PhotosController extends Controller
         $photos = Photo::where('user_id', Auth::user()->id)->get();
         return $photos;
     }
-
 }
