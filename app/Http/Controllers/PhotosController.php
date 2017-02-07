@@ -107,19 +107,20 @@ class PhotosController extends Controller
       }
 
       //TODO- Validate lat/lng more carefully since they go into a raw query
-      $photosInRange = Photo::getByDistance($request->lat, $request->lng, 200); //TODO- What radius makes sense
-      foreach($photosInRange as $photo) {
-        $photo->likes = Like::where('photo_id', $photo->id)->get();
-        $photo->comments = Comment::where('photo_id', $photo->id)->get();
-      }
+      // $photosInRange = Photo::getByDistance($request->lat, $request->lng, 200); //TODO- What radius makes sense
+      // foreach($photosInRange as $photo) {
+      //   $photo->likes = Like::where('photo_id', $photo->id)->get();
+      //   $photo->comments = Comment::where('photo_id', $photo->id)->get();
+      // }
       $photoz = (Photo::getByDistance2($request->lat, $request->lng, 200));
       foreach($photoz as $photo) {
         $photo->numLikes = $photo->numLikes;
         $photo->numComments = $photo->numComments;
         $photo->likes = $photo->likes;
         $photo->comments = $photo->comments;
-        var_dump($photo->toArray());
+        // var_dump($photo->toArray());
       }
+      return $photoz;
       //TODO- Filter these by popularity/time/etc
       // return $photosInRange;
     }
