@@ -15,6 +15,7 @@ use App\Models\Photo;
 use App\Models\Comment;
 use App\Models\Like;
 use DB;
+use Log;
 
 class PhotosController extends Controller
 {
