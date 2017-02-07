@@ -18,6 +18,10 @@ class Photo extends Model
 		return $this->hasMany('App\Models\Like');
 	}
 
+	public function getAllCommentsAttribute() {
+		return \App\Models\Comment::where('photo_id', $this->id);
+	}
+
 	public function getNumLikesAttribute() {
         $likes = Like::where('photo_id',$this->id)->where('liked', 1)->get();
         return $likes->count();

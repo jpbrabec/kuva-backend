@@ -52,4 +52,7 @@ class User extends Authenticatable
         $reset->save();
         // SEND EMAIL
     }
+    public function comments() {
+        return $this->hasMany('App\Models\Comment');
+    }
 }
