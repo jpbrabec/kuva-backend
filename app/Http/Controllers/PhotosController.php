@@ -55,6 +55,10 @@ class PhotosController extends Controller
         return ['message' => 'success'];
     }
 
+    public function getPhoto(Request $request, Photo $photo) {
+      return Photo::where('id',$photo->id)->with('comments')->with('likes')->get();
+    }
+
     public function delete(Request $request, Photo $photo) {
         if($photo->user_id != Auth::user()->id) {
             return ['message' => 'authentication'];
@@ -120,7 +124,7 @@ class PhotosController extends Controller
       }
 
       //TODO- Filter these by popularity/time/etc
-      return $photos;   
+      return $photos;
     }
 
     public function userPhotos() {

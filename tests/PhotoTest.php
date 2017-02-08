@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\Photo;
 use App\Models\Like;
 use App\Models\User;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class PhotoTest extends TestCase
 {
@@ -69,15 +70,22 @@ class PhotoTest extends TestCase
     }
 
     public function testPhotoUpload() {
-      //TODO- Figure out how to mock photos
-      //Verify that you can upload a photo
-      // $this->actingAs($this->user)
-      // ->post('api/user/photos/create',[
-      //   'photo' => 'bloop',
-      //   'caption' => 'DankPhoto',
-      //   'lat' => '40.424899',
-      //   'lng' => '-86.909189'
-      // ],['HTTP_Authorization' => 'Bearer: '.$this->token])
-      // ->seeJson(['distance' => 0, 'id' => $this->photo->id]);
+      $file = Mockery::mock(UploadedFile::class, [
+           'getClientOriginalName'      => 'foo',
+           'getClientOriginalExtension' => 'jpg'
+       ]);
+
+       $file->shouldReceive('move')
+       ->once();
+
+      // Verify that you can upload a photo
+      $this->actingAs($this->user)
+      ->post('api/user/photos/create',[
+        'photo' => $file,
+        'caption' => 'DankPhoto',
+        'lat' => '40.424899',
+        'lng' => '-86.909189'
+      ],['HTTP_Authorization' => 'Bearer: '.$this->token])
+      ->seeJson(['distance' => 0, 'id' => $this->photo->id]);
     }
   }
