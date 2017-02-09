@@ -28,6 +28,6 @@ Route::group(['prefix' => 'user', 'middleware' => ['jwt.auth']], function() {
 		Route::post('photos/like/{photo}', 'PhotosController@like');
 		Route::get('photos', 'PhotosController@userPhotos');
 	});
-	Route::get('photos/{photo}', 'PhotosController@getPhoto');
-
 });
+
+Route::get('photos/{photo}', 'PhotosController@getPhoto');

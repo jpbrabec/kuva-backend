@@ -11,6 +11,7 @@ use App\Models\Photo;
 use App\Models\Comment;
 use App\Models\Like;
 use Image;
+use JWTAuth;
 
 class PhotosController extends Controller
 {
@@ -52,7 +53,13 @@ class PhotosController extends Controller
     }
 
     public function getPhoto(Request $request, Photo $photo) {
-      return Photo::where('id',$photo->id)->with('comments')->with('likes')->get();
+    	$photo = Photo::where('id',$photo->id)->with('comments')->with('likes')->get()->toArray();
+    	try {
+    		$user = JWTAuth::parseToken()->authenticate();
+    		$photo['user_liked'] = Like::where('user_id', $user->id)->first(['liked'])['liked'];
+    	} catch (\Exception $e) {
+    	}
+      	return $photo;
     }
 
     public function delete(Request $request, Photo $photo) {
