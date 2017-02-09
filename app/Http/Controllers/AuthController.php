@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Validator;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\User;
 use Auth;
-use JWTAuth;
 use Hash;
 use Carbon\Carbon;
 
