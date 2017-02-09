@@ -10,6 +10,10 @@ class Photo extends Model
 {
 	protected $hidden = ['deleted_at'];
 
+	public function user() {
+		return $this->belongsTo('App\Models\User');
+	}
+
 	public function comments() {
 		return $this->hasMany('App\Models\Comment');
 	}

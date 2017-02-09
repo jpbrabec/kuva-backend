@@ -53,7 +53,7 @@ class PhotosController extends Controller
     }
 
     public function getPhoto(Request $request, Photo $photo) {
-    	$photo = Photo::where('id',$photo->id)->with('comments')->with('likes')->get()->toArray();
+    	$photo = Photo::where('id',$photo->id)->with('comments.user')->with('likes.user')->with('user')->get()->toArray();
     	try {
     		$user = JWTAuth::parseToken()->authenticate();
     		$photo['user_liked'] = Like::where('user_id', $user->id)->first(['liked'])['liked'];
