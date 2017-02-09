@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Photo;
 use App\Models\Comment;
 use App\Models\Like;
+use Image;
 
 class PhotosController extends Controller
 {
@@ -25,7 +26,7 @@ class PhotosController extends Controller
         $validator = Validator::make($request->all(), [
             'lat' => 'required',
             'lng' => 'required',
-            'caption' => 'string|max:255',
+            'caption' => 'required|string|max:255',
             'photo' => 'required|image',
         ]);
 
@@ -42,11 +43,12 @@ class PhotosController extends Controller
 
         $image = $request->file('photo');
         $destinationPath = storage_path('app/public') . '/uploads';
-        $name =  $photo->id . '.' . $image->getClientOriginalExtension();
+        $name =  $photo->id . '.jpg';
         if(!$image->move($destinationPath, $name)) {
             return ['message' => 'Error saving the file.', 'code' => 400];
         }
-        return ['message' => 'success'];
+        $img = Image::make($destinationPath . '/' . $name)->encode('jpg', 75)->save();
+        return ['message' => 'success', 'photo_id' => $photo->id];
     }
 
     public function getPhoto(Request $request, Photo $photo) {
