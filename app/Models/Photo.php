@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use DB;
 use App\Models\Like;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Photo extends Model
 {
+	use SoftDeletes;
+	
 	protected $hidden = ['deleted_at'];
 
 	public function user() {
