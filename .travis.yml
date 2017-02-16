@@ -10,4 +10,6 @@ before_script:
   - composer install --no-interaction
   - php artisan migrate
 script:
-  - vendor/bin/phpunit
+  - vendor/bin/phpunit --verbose --coverage-text --coverage-clover=coverage.xml
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
