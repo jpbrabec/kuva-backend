@@ -72,7 +72,7 @@ class PhotosController extends Controller
 
     public function comment(Request $request, Photo $photo) {
         $validator = Validator::make($request->all(), [
-            'text' => 'required',
+            'text' => 'required|between:1,200',
         ]);
 
         if ($validator->fails()) {
