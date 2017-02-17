@@ -25,8 +25,8 @@ class PhotosController extends Controller
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'lat' => 'required',
-            'lng' => 'required',
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
             'caption' => 'required|string|max:255',
             'photo' => 'required|image',
         ]);
