@@ -13,6 +13,7 @@ use App\Models\Like;
 use Image;
 use JWTAuth;
 
+//Photo Controller
 class PhotosController extends Controller
 {
 
