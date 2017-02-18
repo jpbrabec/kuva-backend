@@ -13,6 +13,7 @@ use App\Models\Like;
 use Image;
 use JWTAuth;
 
+//Photo Controller
 class PhotosController extends Controller
 {
 
@@ -25,8 +26,8 @@ class PhotosController extends Controller
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'lat' => 'required',
-            'lng' => 'required',
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
             'caption' => 'required|string|max:255',
             'photo' => 'required|image',
         ]);
@@ -72,7 +73,7 @@ class PhotosController extends Controller
 
     public function comment(Request $request, Photo $photo) {
         $validator = Validator::make($request->all(), [
-            'text' => 'required',
+            'text' => 'required|between:1,200',
         ]);
 
         if ($validator->fails()) {
