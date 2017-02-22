@@ -19,7 +19,7 @@ Route::group(['prefix' => 'user'], function() {
 	Route::post('reset', 'AuthController@sendPasswordReset');
 });
 
-Route::group(['prefix' => 'user', 'middleware' => ['jwt.auth']], function() {
+Route::group(['prefix' => 'user'], function() {
 	Route::get('photos/report/{token}', 'PhotosController@confirmReport');
 
 	Route::group(['middleware' => ['jwt.auth']],function(){
