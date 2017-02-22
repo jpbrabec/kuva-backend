@@ -40,7 +40,7 @@ class User extends Authenticatable
 
     public function getToken() {
         $roles = $this->roles()->get()->pluck('name');
-        return JWTAuth::fromUser($this, ['exp' => strtotime('+1 year'), 'roles'=>$roles, null, 'user_id'=>$this->id]);
+        return JWTAuth::fromUser($this, ['exp' => strtotime('+1 year'), 'roles' => $roles, 'user_id' => $this->id, 'profile_photo' => $this->profile_photo]);
     }
 
     public function sendPasswordResetEmail()

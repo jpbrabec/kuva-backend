@@ -140,4 +140,33 @@ class PhotosController extends Controller
         $photos = Photo::where('user_id', Auth::user()->id)->get();
         return $photos;
     }
+
+    /**
+     * Create a photo
+     *
+     * @param  Request  $request
+     * @return Response
+     */
+    public function createProfilePhoto(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'photo' => 'required|image',
+        ]);
+
+        if ($validator->fails()) {
+            return $validator->errors()->all();
+        }
+
+        $name = str_random(5);
+        $image = $request->file('photo');
+        $destinationPath = storage_path('app/public') . '/uploads/profile';
+        $name = $name . '.jpg';
+        if(!$image->move($destinationPath, $name)) {
+            return ['message' => 'Error saving the file.', 'code' => 400];
+        }
+        $img = Image::make($destinationPath . '/' . $name)->encode('jpg', 75)->save();
+        Auth::user()->profile_photo = $name;
+        Auth::user()->save();
+        return ['message' => 'success', 'photo' => $name];
+    }
 }
