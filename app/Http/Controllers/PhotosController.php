@@ -9,6 +9,7 @@ use Auth;
 use App\Models\User;
 use App\Models\Photo;
 use App\Models\Comment;
+use App\Models\Report;
 use App\Models\Like;
 use Image;
 use JWTAuth;
@@ -103,6 +104,49 @@ class PhotosController extends Controller
         $like->user_id = Auth::user()->id;
         $like->save();
         return ['message' => 'success'];
+    }
+
+    public function reportPhoto(Request $request, Photo $photo) {
+        $validator = Validator::make($request->all(), [
+            'message' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $validator->errors()->all();
+        }
+
+        //Only generate token/email on the first report
+        if(count(Report::where('photo_id',$photo->id)->first()) == 0) {
+          $report = new Report;
+          $report->message = $request->message;
+          $report->token = str_random(50);
+          $report->photo_id = $photo->id;
+          $report->save();
+
+          //TODO- Send email
+        }
+
+        return ['message' => 'success'];
+    }
+
+    //Delete a photo using the admin's token
+    public function confirmReport(Request $request) {
+
+      if(!isset($request->token)) {
+        return "token_required";
+      }
+
+      //Find the report
+      $report = Report::where('token',$request->token)->first();
+      if(count($report) == 0) {
+        return "invalid_token";
+      }
+
+      //Remove the related photo & this report
+      $report->photo->delete();
+      $report->delete();
+
+      return "success";
     }
 
     public function feed(Request $request) {
