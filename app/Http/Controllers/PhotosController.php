@@ -11,8 +11,11 @@ use App\Models\Photo;
 use App\Models\Comment;
 use App\Models\Report;
 use App\Models\Like;
+Use App\Models\Role;
 use Image;
 use JWTAuth;
+use Mail;
+use Log;
 
 //Photo Controller
 class PhotosController extends Controller
@@ -123,7 +126,20 @@ class PhotosController extends Controller
           $report->photo_id = $photo->id;
           $report->save();
 
-          //TODO- Send email
+          $adminRole = Role::where('name','admin')->first();
+          $adminEmails = $adminRole->users()->value('email');
+          Log::debug('Sending report to '.$adminEmails);
+          if(count($adminEmails) > 0) {
+            //Send Emails
+            Mail::queue('emails.report', ['photo' => $photo ,'reportMessage' => $report->message,'token' => $report->token], function ($email) use($adminEmails) {
+                $email->from('noreply@kuva.com');
+                $email->subject("Kuva Photo Report");
+                $email->to($adminEmails);
+            });
+          } else {
+            Log::debug('No admins registered. No emails sent.');
+          }
+
         }
 
         return ['message' => 'success'];
