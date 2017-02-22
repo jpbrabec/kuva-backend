@@ -45,7 +45,7 @@ class PhotosController extends Controller
 
         $image = $request->file('photo');
         $destinationPath = storage_path('app/public') . '/uploads';
-        $name =  $photo->id . '.jpg';
+        $name = $photo->id . '.jpg';
         if(!$image->move($destinationPath, $name)) {
             return ['message' => 'Error saving the file.', 'code' => 400];
         }
@@ -59,6 +59,7 @@ class PhotosController extends Controller
     		$user = JWTAuth::parseToken()->authenticate();
     		$photo['user_liked'] = Like::where('user_id', $user->id)->first(['liked'])['liked'];
     	} catch (\Exception $e) {
+    		return ['message' => 'invalid_photo'];
     	}
       	return $photo;
     }
@@ -133,12 +134,12 @@ class PhotosController extends Controller
 
  	public function getProfile(Request $request, User $user) {
  		$photos = Photo::where('user_id', $user->id)->get();
-        return ['name' => $user->name, 'photos' => $photos];
+        return ['message' => 'success', 'name' => $user->name, 'photos' => $photos];
  	}
 
     public function userPhotos() {
         $photos = Photo::where('user_id', Auth::user()->id)->get();
-        return $photos;
+        return ['message' => 'success', 'photos' => $photos];
     }
 
     /**
@@ -157,10 +158,9 @@ class PhotosController extends Controller
             return $validator->errors()->all();
         }
 
-        $name = str_random(5);
+        $name = str_random(5) . '.jpg';
         $image = $request->file('photo');
         $destinationPath = storage_path('app/public') . '/uploads/profile';
-        $name = $name . '.jpg';
         if(!$image->move($destinationPath, $name)) {
             return ['message' => 'Error saving the file.', 'code' => 400];
         }
