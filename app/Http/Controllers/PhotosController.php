@@ -128,19 +128,20 @@ class PhotosController extends Controller
           $report->save();
 
           $adminRole = Role::where('name','admin')->first();
-          $adminEmails = $adminRole->users()->value('email');
-          Log::debug('Sending report to '.$adminEmails);
-          if(count($adminEmails) > 0) {
-            //Send Emails
-            Mail::queue('emails.report', ['photo' => $photo ,'reportMessage' => $report->message,'token' => $report->token], function ($email) use($adminEmails) {
-                $email->from('noreply@kuva.com');
-                $email->subject("Kuva Photo Report");
-                $email->to($adminEmails);
-            });
-          } else {
-            Log::debug('No admins registered. No emails sent.');
+          if(count($adminRole) > 0) {
+            $adminEmails = $adminRole->users()->value('email');
+            Log::debug('Sending report to '.$adminEmails);
+            if(count($adminEmails) > 0) {
+              //Send Emails
+              Mail::queue('emails.report', ['photo' => $photo ,'reportMessage' => $report->message,'token' => $report->token], function ($email) use($adminEmails) {
+                  $email->from('noreply@kuva.com');
+                  $email->subject("Kuva Photo Report");
+                  $email->to($adminEmails);
+              });
+            } else {
+              Log::debug('No admins registered. No emails sent.');
+            }
           }
-
         }
 
         return ['message' => 'success'];
