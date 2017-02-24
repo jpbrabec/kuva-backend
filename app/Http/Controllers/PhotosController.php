@@ -166,6 +166,31 @@ class PhotosController extends Controller
       return "success";
     }
 
+    //Get a feed of recent activity on this user's account
+    public function getActivityFeed(Request $request) {
+      $feedData = Photo::where('user_id',Auth::id())->with('likes.user')->with('comments.user')->get();
+      $combinedLikes = array();
+      $combinedComments = array();
+      foreach($feedData as $currentPhoto) {
+        foreach($currentPhoto->likes as $like) {
+          array_push($combinedLikes,$like);
+        }
+        foreach($currentPhoto->comments as $comment) {
+          array_push($combinedComments,$comment);
+        }
+      }
+
+      //Sort Comments & Likes by timestamp, starting with most recent
+      usort($combinedComments,function($a,$b) {
+        return $a->created_at < $b->created_at;
+      });
+      usort($combinedLikes,function($a,$b) {
+        return $a->created_at < $b->created_at;
+      });
+      $data = array('likes' => $combinedLikes, 'comments' => $combinedComments);
+      return $data;
+    }
+
     public function feed(Request $request) {
       $validator = Validator::make($request->all(), [
           'lat' => 'required|numeric',

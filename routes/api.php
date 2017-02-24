@@ -31,6 +31,7 @@ Route::group(['prefix' => 'user'], function() {
 		Route::post('photos/like/{photo}', 'PhotosController@like');
 		Route::get('photos', 'PhotosController@userPhotos');
 		Route::get('{user}/profile', 'PhotosController@getProfile');
+		Route::get('newsfeed', 'PhotosController@getActivityFeed');
 		Route::post('profile/upload', 'PhotosController@createProfilePhoto');
 	});
 });
