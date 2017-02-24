@@ -150,13 +150,13 @@ class PhotosController extends Controller
     public function confirmReport(Request $request) {
 
       if(!isset($request->token)) {
-        return "token_required";
+        return ['message' => 'token_required'];
       }
 
       //Find the report
       $report = Report::where('token',$request->token)->first();
       if(count($report) == 0) {
-        return "invalid_token";
+        return ['message' => 'invalid_token'];
       }
 
       //Remove the related photo & this report
