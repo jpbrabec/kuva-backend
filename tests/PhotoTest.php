@@ -4,6 +4,7 @@ use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\Photo;
+use App\Models\Comment;
 use App\Models\Like;
 use App\Models\User;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -66,6 +67,34 @@ class PhotoTest extends TestCase
       ->seeJson(['message' => 'success']);
 
       $this->seeInDatabase('likes',['liked' => 1, 'photo_id' => $this->photo->id]);
+
+    }
+
+    public function testUserFeed() {
+      //Create sample like & comment
+      $like = new Like;
+      $like->user_id = $this->user->id;
+      $like->photo_id = $this->photo->id;
+      $like->liked = 1;
+      $like->save();
+      $this->seeInDatabase('likes',['liked' => 1, 'photo_id' => $this->photo->id]);
+
+      $comment = new Comment;
+      $comment->user_id = $this->user->id;
+      $comment->photo_id = $this->photo->id;
+      $comment->text = "Comment A";
+      $comment->save();
+      $comment = new Comment;
+      $comment->user_id = $this->user->id;
+      $comment->photo_id = $this->photo->id;
+      $comment->text = "Comment B";
+      $comment->save();
+      $this->seeInDatabase('comments',['text' => "Comment A", 'photo_id' => $this->photo->id]);
+      $this->seeInDatabase('comments',['text' => "Comment B", 'photo_id' => $this->photo->id]);
+
+      $this->actingAs($this->user)
+      ->get('api/user/newsfeed',['HTTP_Authorization' => 'Bearer: '.$this->token])
+      ->seeJsonStructure(['comments','likes'])->seeJson(['liked' => 1,'photo_id' => $this->photo->id, 'text' => "Comment A", 'text' => "Comment B"]);
 
     }
 
