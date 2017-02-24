@@ -163,7 +163,7 @@ class PhotosController extends Controller
       $report->photo->delete();
       $report->delete();
 
-      return "success";
+      return ['message' => 'success'];
     }
 
     //Get a feed of recent activity on this user's account

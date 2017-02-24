@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\Photo;
 use App\Models\Comment;
 use App\Models\Like;
+use App\Models\Report;
 use App\Models\User;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -68,6 +69,30 @@ class PhotoTest extends TestCase
 
       $this->seeInDatabase('likes',['liked' => 1, 'photo_id' => $this->photo->id]);
 
+    }
+
+    public function testPhotoReport() {
+      $this->actingAs($this->user)
+      ->post('api/user/photos/'.$this->photo->id.'/report',[
+        'message' => "This photo is just too incredible for me to handle",
+      ],['HTTP_Authorization' => 'Bearer: '.$this->token])
+      ->seeJson(['message' => 'success']);
+
+      $this->seeInDatabase('photo_reports',['photo_id' => $this->photo->id]);
+    }
+
+    public function testPhotoDelete() {
+
+      $report = new Report;
+      $report->photo_id = $this->photo->id;
+      $report->message = "Offensive";
+      $report->token = "123ABC";
+      $report->save();
+      $this->seeInDatabase('photo_reports',['photo_id' => $this->photo->id]);
+
+      //Try to delete the offensive photo
+      $this->get('api/user/photos/report/'.$report->token)
+      ->seeJson(['message' => 'success']);
     }
 
     public function testUserFeed() {
