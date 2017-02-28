@@ -170,25 +170,21 @@ class PhotosController extends Controller
     //Get a feed of recent activity on this user's account
     public function getActivityFeed(Request $request) {
       $feedData = Photo::where('user_id',Auth::id())->with('likes.user')->with('comments.user')->get();
-      $combinedLikes = array();
-      $combinedComments = array();
+      $combinedData = array();
       foreach($feedData as $currentPhoto) {
         foreach($currentPhoto->likes as $like) {
-          array_push($combinedLikes,$like);
+          array_push($combinedData,$like);
         }
         foreach($currentPhoto->comments as $comment) {
-          array_push($combinedComments,$comment);
+          array_push($combinedData,$comment);
         }
       }
 
       //Sort Comments & Likes by timestamp, starting with most recent
-      usort($combinedComments,function($a,$b) {
+      usort($combinedData,function($a,$b) {
         return $a->created_at < $b->created_at;
       });
-      usort($combinedLikes,function($a,$b) {
-        return $a->created_at < $b->created_at;
-      });
-      $data = array('likes' => $combinedLikes, 'comments' => $combinedComments);
+      $data = array('data' => $combinedData);
       return $data;
     }
 
