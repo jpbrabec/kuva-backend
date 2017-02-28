@@ -173,9 +173,11 @@ class PhotosController extends Controller
       $combinedData = array();
       foreach($feedData as $currentPhoto) {
         foreach($currentPhoto->likes as $like) {
+          $like->type = "like";
           array_push($combinedData,$like);
         }
         foreach($currentPhoto->comments as $comment) {
+          $comment->type = "comment";
           array_push($combinedData,$comment);
         }
       }
