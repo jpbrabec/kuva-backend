@@ -220,7 +220,7 @@ class PhotosController extends Controller
 
  	public function getProfile(Request $request, User $user) {
  		$photos = Photo::where('user_id', $user->id)->get();
-        return ['message' => 'success', 'name' => $user->name, 'photos' => $photos];
+        return ['message' => 'success', 'name' => $user->name, 'photos' => $photos, 'profile_photo' => $user->profile_photo];
  	}
 
     public function userPhotos() {
