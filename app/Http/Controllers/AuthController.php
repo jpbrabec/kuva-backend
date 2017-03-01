@@ -86,7 +86,10 @@ class AuthController extends Controller
         $password = $request->password;
 
         $reset = PasswordReset::where('token', $token)->first();
-
+        if(count($reset) < 1) {
+          return ['message' => 'invalid_token'];
+        }
+        
         if (Carbon::parse($reset->created_at)->addHour(48)->lte(Carbon::now())) {
             return ['message' => 'expired'];
         }

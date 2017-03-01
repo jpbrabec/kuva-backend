@@ -8,6 +8,7 @@ use Zizaco\Entrust\Traits\EntrustUserTrait;
 use JWTAuth;
 use App\Models\PasswordReset;
 use Carbon\Carbon;
+use Mail;
 
 class User extends Authenticatable
 {
@@ -50,9 +51,15 @@ class User extends Authenticatable
         $reset->created_at = Carbon::now();
         $reset->token = $token;
         $reset->save();
-        // SEND EMAIL
-    }
-    
+        $user = $this;
+        //Send Emails
+        Mail::queue('emails.passwordreset', ['user' => $user, 'token' => $reset->token], function ($email) use($user) {
+            $email->from('noreply@kuva.com');
+            $email->subject("Kuva Password Reset");
+            $email->to($user->email);
+        });
+      }
+
     public function comments() {
         return $this->hasMany('App\Models\Comment');
     }
