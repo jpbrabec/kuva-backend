@@ -95,7 +95,7 @@ class AuthController extends Controller
         $user->password = Hash::make($password);
         $user->save();
 
-        $reset->destroy();
+        $reset->delete();
 
         return ['message' => 'success'];
     }
