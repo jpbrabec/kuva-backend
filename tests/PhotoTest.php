@@ -119,7 +119,7 @@ class PhotoTest extends TestCase
 
       $this->actingAs($this->user)
       ->get('api/user/newsfeed',['HTTP_Authorization' => 'Bearer: '.$this->token])
-      ->seeJsonStructure(['comments','likes'])->seeJson(['liked' => 1,'photo_id' => $this->photo->id, 'text' => "Comment A", 'text' => "Comment B"]);
+      ->seeJson(['liked' => 1,'photo_id' => $this->photo->id, 'text' => "Comment A", 'text' => "Comment B"]);
 
     }
 
