@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Validator;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\PasswordReset;
 use Auth;
 use Hash;
 use Carbon\Carbon;
@@ -39,7 +40,7 @@ class AuthController extends Controller
         $token = $user->getToken();
         return ['message' => 'success', 'token' => $token];
     }
-    
+
     /**
      * Authenticate a user
      *
