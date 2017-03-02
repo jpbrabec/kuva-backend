@@ -194,6 +194,7 @@ class PhotosController extends Controller
       $validator = Validator::make($request->all(), [
           'lat' => 'required|numeric',
           'lng' => 'required|numeric',
+          'popularity' => 'boolean',
       ]);
 
       if ($validator->fails()) {
@@ -213,10 +214,13 @@ class PhotosController extends Controller
       }
       
       $photos = $photos->toArray();
-      usort($photos, function($a,$b) {
-        return $a['numLikes'] < $b['numLikes'];
-      });
-     
+
+      if($request->popularity) {
+      	usort($photos, function($a,$b) {
+        	return $a['numLikes'] < $b['numLikes'];
+      	});
+      }
+      
       //TODO- Filter these by popularity/time/etc
       return $photos;
     }
