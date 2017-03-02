@@ -211,7 +211,12 @@ class PhotosController extends Controller
             $comment->user = User::where('id', $comment->user_id)->get(['name']);
         }
       }
-
+      
+      $photos = $photos->toArray();
+      usort($photos, function($a,$b) {
+        return $a['numLikes'] < $b['numLikes'];
+      });
+     
       //TODO- Filter these by popularity/time/etc
       return $photos;
     }
