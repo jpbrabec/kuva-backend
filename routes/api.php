@@ -19,14 +19,20 @@ Route::group(['prefix' => 'user'], function() {
 	Route::post('reset', 'AuthController@sendPasswordReset');
 });
 
-Route::group(['prefix' => 'user', 'middleware' => ['jwt.auth']], function() {
+Route::group(['prefix' => 'user'], function() {
+	Route::get('photos/report/{token}', 'PhotosController@confirmReport');
+
 	Route::group(['middleware' => ['jwt.auth']],function(){
 		Route::post('photos/create', 'PhotosController@create');
 		Route::get('photos/feed', 'PhotosController@feed');
 		Route::post('photos/{photo}/delete', 'PhotosController@delete');
+		Route::post('photos/{photo}/report', 'PhotosController@reportPhoto');
 		Route::post('photos/comment/{photo}', 'PhotosController@comment');
 		Route::post('photos/like/{photo}', 'PhotosController@like');
 		Route::get('photos', 'PhotosController@userPhotos');
+		Route::get('{user}/profile', 'PhotosController@getProfile');
+		Route::get('newsfeed', 'PhotosController@getActivityFeed');
+		Route::post('profile/upload', 'PhotosController@createProfilePhoto');
 	});
 });
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Validator;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\PasswordReset;
 use Auth;
 use Hash;
 use Carbon\Carbon;
@@ -39,7 +40,7 @@ class AuthController extends Controller
         $token = $user->getToken();
         return ['message' => 'success', 'token' => $token];
     }
-    
+
     /**
      * Authenticate a user
      *
@@ -85,7 +86,10 @@ class AuthController extends Controller
         $password = $request->password;
 
         $reset = PasswordReset::where('token', $token)->first();
-
+        if(count($reset) < 1) {
+          return ['message' => 'invalid_token'];
+        }
+        
         if (Carbon::parse($reset->created_at)->addHour(48)->lte(Carbon::now())) {
             return ['message' => 'expired'];
         }
@@ -94,7 +98,7 @@ class AuthController extends Controller
         $user->password = Hash::make($password);
         $user->save();
 
-        $reset->destroy();
+        $reset->delete();
 
         return ['message' => 'success'];
     }

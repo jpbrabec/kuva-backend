@@ -9,9 +9,13 @@ use Auth;
 use App\Models\User;
 use App\Models\Photo;
 use App\Models\Comment;
+use App\Models\Report;
 use App\Models\Like;
+Use App\Models\Role;
 use Image;
 use JWTAuth;
+use Mail;
+use Log;
 
 //Photo Controller
 class PhotosController extends Controller
@@ -45,7 +49,7 @@ class PhotosController extends Controller
 
         $image = $request->file('photo');
         $destinationPath = storage_path('app/public') . '/uploads';
-        $name =  $photo->id . '.jpg';
+        $name = $photo->id . '.jpg';
         if(!$image->move($destinationPath, $name)) {
             return ['message' => 'Error saving the file.', 'code' => 400];
         }
@@ -54,13 +58,18 @@ class PhotosController extends Controller
     }
 
     public function getPhoto(Request $request, Photo $photo) {
-    	$photo = Photo::where('id',$photo->id)->with('comments.user')->with('likes.user')->with('user')->get()->toArray();
+    	$photoDetails = Photo::where('id',$photo->id)->with('comments.user')->with('likes.user')->with('user')->get()->toArray();
     	try {
     		$user = JWTAuth::parseToken()->authenticate();
-    		$photo['user_liked'] = Like::where('user_id', $user->id)->first(['liked'])['liked'];
+    		$photoDetails['user_liked'] = 0;
+    		$like = Like::where('user_id', $user->id)->where('photo_id', $photo->id)->first();
+    		if($like !== null && $like['liked'] == 1) {
+    			$photoDetails['user_liked'] = 1;
+    		}
     	} catch (\Exception $e) {
+    		return ['message' => 'invalid_photo'];
     	}
-      	return $photo;
+      	return $photoDetails;
     }
 
     public function delete(Request $request, Photo $photo) {
@@ -105,10 +114,91 @@ class PhotosController extends Controller
         return ['message' => 'success'];
     }
 
+    public function reportPhoto(Request $request, Photo $photo) {
+        $validator = Validator::make($request->all(), [
+            'message' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $validator->errors()->all();
+        }
+
+        //Only generate token/email on the first report
+        if(count(Report::where('photo_id',$photo->id)->first()) == 0) {
+          $report = new Report;
+          $report->message = $request->message;
+          $report->token = str_random(50);
+          $report->photo_id = $photo->id;
+          $report->save();
+
+          $adminRole = Role::where('name','admin')->first();
+          if(count($adminRole) > 0) {
+            $adminEmails = $adminRole->users()->value('email');
+            Log::debug('Sending report to '.$adminEmails);
+            if(count($adminEmails) > 0) {
+              //Send Emails
+              Mail::queue('emails.report', ['photo' => $photo ,'reportMessage' => $report->message,'token' => $report->token], function ($email) use($adminEmails) {
+                  $email->from('noreply@kuva.com');
+                  $email->subject("Kuva Photo Report");
+                  $email->to($adminEmails);
+              });
+            } else {
+              Log::debug('No admins registered. No emails sent.');
+            }
+          }
+        }
+
+        return ['message' => 'success'];
+    }
+
+    //Delete a photo using the admin's token
+    public function confirmReport(Request $request) {
+
+      if(!isset($request->token)) {
+        return ['message' => 'token_required'];
+      }
+
+      //Find the report
+      $report = Report::where('token',$request->token)->first();
+      if(count($report) == 0) {
+        return ['message' => 'invalid_token'];
+      }
+
+      //Remove the related photo & this report
+      $report->photo->delete();
+      $report->delete();
+
+      return ['message' => 'success'];
+    }
+
+    //Get a feed of recent activity on this user's account
+    public function getActivityFeed(Request $request) {
+      $feedData = Photo::where('user_id',Auth::id())->with('likes.user')->with('comments.user')->get();
+      $combinedData = array();
+      foreach($feedData as $currentPhoto) {
+        foreach($currentPhoto->likes as $like) {
+          $like->type = "like";
+          array_push($combinedData,$like);
+        }
+        foreach($currentPhoto->comments as $comment) {
+          $comment->type = "comment";
+          array_push($combinedData,$comment);
+        }
+      }
+
+      //Sort Comments & Likes by timestamp, starting with most recent
+      usort($combinedData,function($a,$b) {
+        return $a->created_at < $b->created_at;
+      });
+      $data = array('data' => $combinedData);
+      return $data;
+    }
+
     public function feed(Request $request) {
       $validator = Validator::make($request->all(), [
           'lat' => 'required|numeric',
           'lng' => 'required|numeric',
+          'popularity' => 'boolean',
       ]);
 
       if ($validator->fails()) {
@@ -126,13 +216,54 @@ class PhotosController extends Controller
             $comment->user = User::where('id', $comment->user_id)->get(['name']);
         }
       }
+      
+      $photos = $photos->toArray();
 
+      if($request->popularity) {
+      	usort($photos, function($a,$b) {
+        	return $a['numLikes'] < $b['numLikes'];
+      	});
+      }
+      
       //TODO- Filter these by popularity/time/etc
       return $photos;
     }
 
+ 	public function getProfile(Request $request, User $user) {
+ 		$photos = Photo::where('user_id', $user->id)->get();
+        return ['message' => 'success', 'name' => $user->name, 'photos' => $photos, 'profile_photo' => $user->profile_photo];
+ 	}
+
     public function userPhotos() {
         $photos = Photo::where('user_id', Auth::user()->id)->get();
-        return $photos;
+        return ['message' => 'success', 'photos' => $photos];
+    }
+
+    /**
+     * Create a photo
+     *
+     * @param  Request  $request
+     * @return Response
+     */
+    public function createProfilePhoto(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'photo' => 'required|image',
+        ]);
+
+        if ($validator->fails()) {
+            return $validator->errors()->all();
+        }
+
+        $name = str_random(5) . '.jpg';
+        $image = $request->file('photo');
+        $destinationPath = storage_path('app/public') . '/uploads/profile';
+        if(!$image->move($destinationPath, $name)) {
+            return ['message' => 'Error saving the file.', 'code' => 400];
+        }
+        $img = Image::make($destinationPath . '/' . $name)->encode('jpg', 75)->save();
+        Auth::user()->profile_photo = $name;
+        Auth::user()->save();
+        return ['message' => 'success', 'photo' => $name];
     }
 }

@@ -97,15 +97,19 @@ class IntegrationTest extends TestCase {
     	$photo->save();
 
     	$response = $this->call('GET', '/api/user/photos?token='.$token, [], [], [], []);
+
     	$this->seeJsonStructure([
-    		[
-    			'id',
-    			'user_id',
-    			'caption',
-    			'lat',
-    			'lng',
-    			'created_at',
-    			'updated_at'
+    		'message',
+    		'photos' => [
+    			[
+    				'id',
+    				'user_id',
+    				'caption',
+    				'lat',
+    				'lng',
+    				'created_at',
+    				'updated_at'
+    			]
     		]
     	]);
 	}

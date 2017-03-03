@@ -4,7 +4,9 @@ use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\Photo;
+use App\Models\Comment;
 use App\Models\Like;
+use App\Models\Report;
 use App\Models\User;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -66,6 +68,58 @@ class PhotoTest extends TestCase
       ->seeJson(['message' => 'success']);
 
       $this->seeInDatabase('likes',['liked' => 1, 'photo_id' => $this->photo->id]);
+
+    }
+
+    public function testPhotoReport() {
+      $this->actingAs($this->user)
+      ->post('api/user/photos/'.$this->photo->id.'/report',[
+        'message' => "This photo is just too incredible for me to handle",
+      ],['HTTP_Authorization' => 'Bearer: '.$this->token])
+      ->seeJson(['message' => 'success']);
+
+      $this->seeInDatabase('photo_reports',['photo_id' => $this->photo->id]);
+    }
+
+    public function testPhotoDelete() {
+
+      $report = new Report;
+      $report->photo_id = $this->photo->id;
+      $report->message = "Offensive";
+      $report->token = "123ABC";
+      $report->save();
+      $this->seeInDatabase('photo_reports',['photo_id' => $this->photo->id]);
+
+      //Try to delete the offensive photo
+      $this->get('api/user/photos/report/'.$report->token)
+      ->seeJson(['message' => 'success']);
+    }
+
+    public function testUserFeed() {
+      //Create sample like & comment
+      $like = new Like;
+      $like->user_id = $this->user->id;
+      $like->photo_id = $this->photo->id;
+      $like->liked = 1;
+      $like->save();
+      $this->seeInDatabase('likes',['liked' => 1, 'photo_id' => $this->photo->id]);
+
+      $comment = new Comment;
+      $comment->user_id = $this->user->id;
+      $comment->photo_id = $this->photo->id;
+      $comment->text = "Comment A";
+      $comment->save();
+      $comment = new Comment;
+      $comment->user_id = $this->user->id;
+      $comment->photo_id = $this->photo->id;
+      $comment->text = "Comment B";
+      $comment->save();
+      $this->seeInDatabase('comments',['text' => "Comment A", 'photo_id' => $this->photo->id]);
+      $this->seeInDatabase('comments',['text' => "Comment B", 'photo_id' => $this->photo->id]);
+
+      $this->actingAs($this->user)
+      ->get('api/user/newsfeed',['HTTP_Authorization' => 'Bearer: '.$this->token])
+      ->seeJson(['liked' => 1,'photo_id' => $this->photo->id, 'text' => "Comment A", 'text' => "Comment B"]);
 
     }
 
