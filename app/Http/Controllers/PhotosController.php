@@ -58,14 +58,18 @@ class PhotosController extends Controller
     }
 
     public function getPhoto(Request $request, Photo $photo) {
-    	$photo = Photo::where('id',$photo->id)->with('comments.user')->with('likes.user')->with('user')->get()->toArray();
+    	$photoDetails = Photo::where('id',$photo->id)->with('comments.user')->with('likes.user')->with('user')->get()->toArray();
     	try {
     		$user = JWTAuth::parseToken()->authenticate();
-    		$photo['user_liked'] = Like::where('user_id', $user->id)->first(['liked'])['liked'];
+    		$photoDetails['user_liked'] = 0;
+    		$like = Like::where('user_id', $user->id)->where('photo_id', $photo->id)->first();
+    		if($like !== null && $like['liked'] == 1) {
+    			$photoDetails['user_liked'] = 1;
+    		}
     	} catch (\Exception $e) {
     		return ['message' => 'invalid_photo'];
     	}
-      	return $photo;
+      	return $photoDetails;
     }
 
     public function delete(Request $request, Photo $photo) {
