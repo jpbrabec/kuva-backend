@@ -124,7 +124,7 @@ class PhotoTest extends TestCase
     }
 
     public function testUserProfile() {
-      //Verify that you can find the photo from the feed
+      //Verify that you can find the photo from the feed 
       $this->actingAs($this->user)
       ->get('api/user/'.$this->user->id.'/profile',['HTTP_Authorization' => 'Bearer: '.$this->token])
       ->seeJson(['name' => $this->user->name]);
