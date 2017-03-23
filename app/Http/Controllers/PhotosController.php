@@ -110,7 +110,7 @@ class PhotosController extends Controller
         $like->liked = $request->liked;
         $like->photo_id = $photo->id;
         $like->user_id = Auth::user()->id;
-        $like->save();
+        // like needs to be saved
         return ['message' => 'success'];
     }
 
@@ -255,8 +255,8 @@ class PhotosController extends Controller
         if ($validator->fails()) {
             return $validator->errors()->all();
         }
-
-        $name = str_random(5) . '.jpg';
+        // hardcoded name
+        $name = 'profile.jpg';
         $image = $request->file('photo');
         $destinationPath = storage_path('app/public') . '/uploads/profile';
         if(!$image->move($destinationPath, $name)) {
