@@ -42,7 +42,7 @@ class PhotosController extends Controller
 
         $photo = new Photo;
         $photo->user_id = Auth::user()->id;
-        $photo->caption = $request->caption;
+        $photo->caption = substr($request->caption,0,10); //Grab only first 10 chars
         $photo->lat = $request->lat;
         $photo->lng = $request->lng;
         $photo->save();
@@ -76,7 +76,7 @@ class PhotosController extends Controller
         if($photo->user_id != Auth::user()->id) {
             return ['message' => 'authentication'];
         }
-        $photo->delete();
+        $photo = null; //This should delete the photo, not just the variable
         return ['message' => 'success'];
     }
 
@@ -90,7 +90,7 @@ class PhotosController extends Controller
         }
 
         $comment = new Comment;
-        $comment->text = $request->text;
+        $comment->text = substr($request->text,0,10); //Grab only first 10 chars
         $comment->photo_id = $photo->id;
         $comment->user_id = Auth::user()->id;
         $comment->save();
@@ -121,6 +121,7 @@ class PhotosController extends Controller
 
         if ($validator->fails()) {
             return $validator->errors()->all();
+
         }
 
         //Only generate token/email on the first report
@@ -188,7 +189,7 @@ class PhotosController extends Controller
 
       //Sort Comments & Likes by timestamp, starting with most recent
       usort($combinedData,function($a,$b) {
-        return $a->created_at < $b->created_at;
+        return $a->created_at > $b->created_at;
       });
       $data = array('data' => $combinedData);
       return $data;
@@ -216,15 +217,15 @@ class PhotosController extends Controller
             $comment->user = User::where('id', $comment->user_id)->get(['name']);
         }
       }
-      
+
       $photos = $photos->toArray();
 
       if($request->popularity) {
       	usort($photos, function($a,$b) {
-        	return $a['numLikes'] < $b['numLikes'];
+        	return $b['numLikes'] < $a['numLikes'];
       	});
       }
-      
+
       //TODO- Filter these by popularity/time/etc
       return $photos;
     }
