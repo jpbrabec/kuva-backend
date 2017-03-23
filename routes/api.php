@@ -12,6 +12,11 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+Route::get('/test', function () {
+    return ['welcome' => 'welcome to kuva backend api'];
+});
+
 Route::group(['prefix' => 'user'], function() {
 	Route::post('register', 'AuthController@register');
 	Route::post('auth', 'AuthController@authenticate');
